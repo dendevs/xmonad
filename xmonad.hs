@@ -21,11 +21,21 @@ import System.Exit
  
 import qualified XMonad.StackSet as W
 import qualified Data.Map        as M
+
+-- Plugins
+import XMonad.Actions.CycleWS
+import XMonad.Actions.GridSelect
+
+import XMonad.Layout.Tabbed
+import XMonad.Layout.Dishes
+
+
+
  
 -- The preferred terminal program, which is used in a binding below and by
 -- certain contrib modules.
 --
-myTerminal      = "xterm"
+myTerminal      = "terminator"
  
 -- Whether focus follows the mouse pointer.
 myFocusFollowsMouse :: Bool
@@ -74,7 +84,7 @@ myModMask       = mod4Mask
 --
 -- > workspaces = ["web", "irc", "code" ] ++ map show [4..9]
 --
-myWorkspaces    = ["1","2","3","4","5","6","7","8","9"]
+myWorkspaces    = ["1","2","3","4","5","6","7","8","9","0"]
  
 -- Border colors for unfocused and focused windows, respectively.
 --
@@ -86,62 +96,86 @@ myFocusedBorderColor = "#ff0000"
 --
 myKeys conf@(XConfig {XMonad.modMask = modm}) = M.fromList $
  
+    -- Applications
     -- launch a terminal
-    [ ((modm .|. shiftMask, xK_Return), spawn $ XMonad.terminal conf)
+    [ ((modm,               xK_a     ), spawn $ XMonad.terminal conf)
  
-    -- launch dmenu
+    -- launch editor
+    , ((modm,               xK_z     ), spawn "terminator -c 'Vim' -e vim")
+    , ((modm .|. shiftMask, xK_z     ), spawn "gedit")
+
+    -- launch browser
+    , ((modm,               xK_e     ), spawn "google-chrome")
+    , ((modm .|. shiftMask, xK_e     ), spawn "firefox")
+    , ((modm .|. controlMask .|. shiftMask, xK_e     ), spawn "chromium")
+
+    -- launch applis launcher
     , ((modm,               xK_p     ), spawn "exe=`dmenu_path | dmenu` && eval \"exec $exe\"")
- 
-    -- launch gmrun
     , ((modm .|. shiftMask, xK_p     ), spawn "gmrun")
  
     -- close focused window
-    , ((modm .|. shiftMask, xK_c     ), kill)
+    , ((modm,               xK_w     ), kill)
  
-     -- Rotate through the available layout algorithms
-    , ((modm,               xK_space ), sendMessage NextLayout)
+
+    -- Sounds
+    -- mute/unmute
+    , ((modm,               0xffaa), spawn "amixer set Master toggle")
+
+    -- volum++
+    , ((modm,               0xffab), spawn "amixer set Master 5%+ unmute")
+
+    -- volum--
+    , ((modm,               0xffad), spawn "amixer set Master 5%- unmute")
+
+
+    -- Layouts
+    -- Rotate through the available layout algorithms
+    , ((modm,               xK_twosuperior ), sendMessage NextLayout)
  
     --  Reset the layouts on the current workspace to default
-    , ((modm .|. shiftMask, xK_space ), setLayout $ XMonad.layoutHook conf)
+    , ((modm .|. shiftMask, xK_twosuperior ), setLayout $ XMonad.layoutHook conf)
  
-    -- Resize viewed windows to the correct size
-    , ((modm,               xK_n     ), refresh)
- 
+
+    -- Focus
     -- Move focus to the next window
-    , ((modm,               xK_Tab   ), windows W.focusDown)
- 
-    -- Move focus to the next window
-    , ((modm,               xK_j     ), windows W.focusDown)
+    , ((modm,               xK_mu     ), windows W.focusDown)
  
     -- Move focus to the previous window
-    , ((modm,               xK_k     ), windows W.focusUp  )
+    , ((modm,               xK_ugrave ), windows W.focusUp  )
  
     -- Move focus to the master window
-    , ((modm,               xK_m     ), windows W.focusMaster  )
+    , ((modm,               xK_BackSpace      ), windows W.focusMaster  )
  
     -- Swap the focused window and the master window
-    , ((modm,               xK_Return), windows W.swapMaster)
+    , ((modm,               xK_Return ), windows W.swapMaster)
  
     -- Swap the focused window with the next window
-    , ((modm .|. shiftMask, xK_j     ), windows W.swapDown  )
+    , ((modm .|. shiftMask, xK_mu     ), windows W.swapDown  )
  
     -- Swap the focused window with the previous window
-    , ((modm .|. shiftMask, xK_k     ), windows W.swapUp    )
- 
+    , ((modm .|. shiftMask, xK_ugrave     ), windows W.swapUp    )
+  
+
+    -- Resize
+    -- Resize viewed windows to the correct size
+    , ((modm,               xK_n     ), refresh) -- TODO test
+
     -- Shrink the master area
-    , ((modm,               xK_h     ), sendMessage Shrink)
+    , ((modm,               0xfe52    ), sendMessage Shrink)  -- dead_circumflex not in scope
  
     -- Expand the master area
-    , ((modm,               xK_l     ), sendMessage Expand)
+    , ((modm,               xK_dollar     ), sendMessage Expand)
  
+
+    -- 
     -- Push window back into tiling
     , ((modm,               xK_t     ), withFocused $ windows . W.sink)
  
     -- Increment the number of windows in the master area
-    , ((modm              , xK_comma ), sendMessage (IncMasterN 1))
+    -- , ((modm              , xK_comma ), sendMessage (IncMasterN 1)) -- Not in use
  
     -- Deincrement the number of windows in the master area
-    , ((modm              , xK_period), sendMessage (IncMasterN (-1)))
+    -- , ((modm              , xK_period), sendMessage (IncMasterN (-1))) -- Not in use
  
     -- Toggle the status bar gap
     -- Use this binding with avoidStruts from Hooks.ManageDocks.
@@ -149,11 +183,30 @@ myKeys conf@(XConfig {XMonad.modMask = modm}) = M.fromList $
     --
     -- , ((modm              , xK_b     ), sendMessage ToggleStruts)
  
+
     -- Quit xmonad
-    , ((modm .|. shiftMask, xK_q     ), io (exitWith ExitSuccess))
+    , ((modm .|. shiftMask, xK_Escape     ), io (exitWith ExitSuccess))
  
     -- Restart xmonad
-    , ((modm              , xK_q     ), spawn "xmonad --recompile; xmonad --restart")
+    , ((modm              , xK_Escape     ), spawn "xmonad --recompile; xmonad --restart")
+
+    -- Plugins
+    -- Workspace switch
+    , ((modm,               xK_Right),  nextWS)
+    , ((modm,               xK_Left),    prevWS)
+    , ((modm .|. shiftMask, xK_Right),  shiftToNext)
+    , ((modm .|. shiftMask, xK_Left),    shiftToPrev)
+    , ((modm,               xK_Tab),     toggleWS)
+    -- Screen switch
+    , ((modm,               xK_Up), nextScreen)
+    , ((modm,               xK_Down),  prevScreen)
+    , ((modm .|. shiftMask, xK_Up), shiftNextScreen)
+    , ((modm .|. shiftMask, xK_Down),  shiftPrevScreen)
+
+    -- grid 
+    , ((modm .|. shiftMask,  xK_Tab), goToSelected defaultGSConfig)
+
+
     ]
     ++
 
@@ -179,7 +232,7 @@ myKeys conf@(XConfig {XMonad.modMask = modm}) = M.fromList $
     -- mod-shift-{w,e,r}, Move client to screen 1, 2, or 3
     --
     [((m .|. modm, key), screenWorkspace sc >>= flip whenJust (windows . f))
-        | (key, sc) <- zip [xK_w, xK_e, xK_r] [0..]
+        | (key, sc) <- zip [0xffaf, 0xffaa, 0xffab] [0..]
         , (f, m) <- [(W.view, 0), (W.shift, shiftMask)]]
  
  
@@ -219,7 +272,7 @@ myMouseBindings (XConfig {XMonad.modMask = modm}) = M.fromList $
 -- The available layouts.  Note that each layout is separated by |||,
 -- which denotes layout choice.
 --
-myLayout = tiled ||| Mirror tiled ||| Full
+myLayout = tiled ||| Mirror tiled ||| Full ||| simpleTabbed ||| Dishes 2 (1/6) 
   where
     -- default tiling algorithm partitions the screen into two panes
     tiled   = Tall nmaster delta ratio
@@ -232,6 +285,7 @@ myLayout = tiled ||| Mirror tiled ||| Full
  
     -- Percent of screen to increment by when resizing panes
     delta   = 3/100
+
  
 ------------------------------------------------------------------------
 -- Window rules:
