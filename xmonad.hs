@@ -29,9 +29,11 @@ import XMonad.Actions.GridSelect
 import XMonad.Layout.Tabbed
 import XMonad.Layout.Dishes
 
-
-
- 
+import XMonad.Hooks.DynamicLog
+import XMonad.Hooks.ManageDocks
+import XMonad.Hooks.UrgencyHook
+import XMonad.Util.Run
+import XMonad.Actions.SpawnOn
 -- The preferred terminal program, which is used in a binding below and by
 -- certain contrib modules.
 --
@@ -272,7 +274,7 @@ myMouseBindings (XConfig {XMonad.modMask = modm}) = M.fromList $
 -- The available layouts.  Note that each layout is separated by |||,
 -- which denotes layout choice.
 --
-myLayout = tiled ||| Mirror tiled ||| Full ||| simpleTabbed ||| Dishes 2 (1/6) 
+myLayout = avoidStruts( tiled ||| Mirror tiled ||| simpleTabbed ||| Dishes 2 (1/6) ) ||| Full
   where
     -- default tiling algorithm partitions the screen into two panes
     tiled   = Tall nmaster delta ratio
@@ -306,7 +308,8 @@ myManageHook = composeAll
     [ className =? "MPlayer"        --> doFloat
     , className =? "Gimp"           --> doFloat
     , resource  =? "desktop_window" --> doIgnore
-    , resource  =? "kdesktop"       --> doIgnore ]
+    , resource  =? "kdesktop"       --> doIgnore
+    , resource  =? "panel"         --> doIgnore ]
  
 ------------------------------------------------------------------------
 -- Event handling
@@ -334,7 +337,23 @@ myEventHook = mempty
 -- It will add EWMH logHook actions to your custom log hook by
 -- combining it with ewmhDesktopsLogHook.
 --
-myLogHook = return ()
+myLogHook h = dynamicLogWithPP $ myDzenPP { ppOutput = hPutStrLn h }
+ 
+myDzenStatus = "dzen2 -w '900' -ta 'l'" ++ myDzenStyle
+myDzenConky  = "conky -c ~/.xmonad/conkyrc | dzen2 -x '900' -w '600' -ta 'r'" ++ myDzenStyle
+myDzenStyle  = " -h '30' -fg '#777777' -bg '#222222' -fn 'arial:bold:size=12'"
+ 
+myDzenPP  = dzenPP
+    { ppCurrent = dzenColor "#3399ff" "" . wrap " " " "
+    , ppHidden  = dzenColor "#dddddd" "" . wrap " " " "
+    , ppHiddenNoWindows = dzenColor "#777777" "" . wrap " " " "
+    , ppUrgent  = dzenColor "#ff0000" "" . wrap " " " "
+    , ppSep     = "     "
+    , ppLayout  = dzenColor "#aaaaaa" "" . wrap "^ca(1,xdotool key super+space)· " " ·^ca()"
+    , ppTitle   = dzenColor "#ffffff" "" 
+                    . wrap "^ca(1,xdotool key super+k)^ca(2,xdotool key super+shift+c)"
+                           "                          ^ca()^ca()" . shorten 240 . dzenEscape
+    }
  
 ------------------------------------------------------------------------
 -- Startup hook
@@ -350,22 +369,28 @@ myLogHook = return ()
 -- It will add initialization of EWMH support to your custom startup
 -- hook by combining it with ewmhDesktopsStartup.
 --
-myStartupHook = return ()
+myStartupHook = do
+  spawn "killall trayer; trayer --edge top --align right --SetDockType true --SetPartialStrut true --expand true --width 6 --height 28 --transparent true --alpha 0 --tint 0x222222 "
+  spawn "killall nm-applet; nm-applet"      
+
+  spawn "xsetroot -cursor_name left_ptr"
+  spawn "amixer set Master mute"
+  spawn "set bell-style none"
+  spawn "nitrogen --restore"
+  spawn "xrandr --output default --brightness 0.5"
+  spawn "numlockx on"
+
  
 ------------------------------------------------------------------------
 -- Now run xmonad with all the defaults we set up.
  
 -- Run xmonad with the settings you specify. No need to modify this.
 --
-main = xmonad defaults
- 
--- A structure containing your configuration settings, overriding
--- fields in the default config. Any you don't override, will
--- use the defaults defined in xmonad/XMonad/Config.hs
---
--- No need to modify this.
---
-defaults = defaultConfig {
+-- main = xmonad defaults
+main = do
+  status <- spawnPipe myDzenStatus    -- xmonad status on the left
+  conky  <- spawnPipe myDzenConky     -- conky stats on the right 
+  xmonad $ withUrgencyHook NoUrgencyHook $ defaultConfig {
       -- simple stuff
         terminal           = myTerminal,
         focusFollowsMouse  = myFocusFollowsMouse,
@@ -385,6 +410,6 @@ defaults = defaultConfig {
         layoutHook         = myLayout,
         manageHook         = myManageHook,
         handleEventHook    = myEventHook,
-        logHook            = myLogHook,
+        logHook            = myLogHook status,
         startupHook        = myStartupHook
     }
