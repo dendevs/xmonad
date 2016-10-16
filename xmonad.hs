@@ -339,8 +339,8 @@ myEventHook = mempty
 --
 myLogHook h = dynamicLogWithPP $ myDzenPP { ppOutput = hPutStrLn h }
  
-myDzenStatus = "dzen2 -w '900' -ta 'l'" ++ myDzenStyle
-myDzenConky  = "conky -c ~/.xmonad/conkyrc | dzen2 -x '900' -w '600' -ta 'r'" ++ myDzenStyle
+myDzenStatus = "dzen2 -w '1050' -ta 'l'" ++ myDzenStyle
+myDzenConky  = "conky -c ~/.xmonad/conkyrc | dzen2 -x '1050' -w '670' -ta 'r'" ++ myDzenStyle
 myDzenStyle  = " -h '30' -fg '#777777' -bg '#222222' -fn 'arial:bold:size=12'"
  
 myDzenPP  = dzenPP
@@ -352,7 +352,7 @@ myDzenPP  = dzenPP
     , ppLayout  = dzenColor "#aaaaaa" "" . wrap "^ca(1,xdotool key super+space)· " " ·^ca()"
     , ppTitle   = dzenColor "#ffffff" "" 
                     . wrap "^ca(1,xdotool key super+k)^ca(2,xdotool key super+shift+c)"
-                           "                          ^ca()^ca()" . shorten 240 . dzenEscape
+                           "                          ^ca()^ca()" . shorten 350 . dzenEscape
     }
  
 ------------------------------------------------------------------------
@@ -370,7 +370,7 @@ myDzenPP  = dzenPP
 -- hook by combining it with ewmhDesktopsStartup.
 --
 myStartupHook = do
-  spawn "killall trayer; trayer --edge top --align right --SetDockType true --SetPartialStrut true --expand true --width 6 --height 28 --transparent true --alpha 0 --tint 0x222222 "
+  spawn "killall trayer; trayer --edge top --align right --distancefrom right --distance 415 --SetDockType true --SetPartialStrut true --expand true --width 6 --height 28 --transparent true --alpha 0 --tint 0x222222"
   spawn "killall nm-applet; nm-applet"      
 
   spawn "xsetroot -cursor_name left_ptr"
