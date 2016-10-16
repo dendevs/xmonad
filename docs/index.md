@@ -108,4 +108,20 @@ Relancer : mod + escape
 
 Quitter : mod + shift + escape
 
-## Docs 
+### Docs 
+
+## Barre de status
+
+* trayer avec nm-applet.
+
+* température
+
+* charge moyen du système
+
+* pourcentage cpu utilisé
+
+* pourcentage ram utilisé
+
+* Batterie en charge ou decharge + temps restant
+
+* date, heure
