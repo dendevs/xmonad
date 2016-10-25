@@ -6,7 +6,7 @@
 
 *github: [config](https://github.com/dendevs/xmonad)*
 
-![xmonad screenshot](/home/dendev/.xmonad/docs/img/xmonad.png  "Xmonad")
+![xmonad screenshot](./docs/img/xmonad.png  "Xmonad")
 
 ## Lexique
 
