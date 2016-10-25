@@ -110,6 +110,8 @@ Quitter : mod + shift + escape
 
 ### Docs 
 
+*  Xmonad : mod + F1
+
 ## Barre de status
 
 * trayer avec nm-applet.

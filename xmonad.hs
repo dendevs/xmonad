@@ -23,17 +23,27 @@ import qualified XMonad.StackSet as W
 import qualified Data.Map        as M
 
 -- Plugins
+import XMonad.Layout.Renamed
 import XMonad.Actions.CycleWS
 import XMonad.Actions.GridSelect
-
+import XMonad.Layout.Grid
+import XMonad.Layout.CenteredMaster
 import XMonad.Layout.Tabbed
 import XMonad.Layout.Dishes
+import XMonad.Layout.DragPane
+import XMonad.Layout.Circle
+import XMonad.Layout.Mosaic
+import XMonad.Layout.StackTile
+import XMonad.Layout.Spacing
+import XMonad.Layout.Roledex
+import XMonad.Layout.OneBig
 
 import XMonad.Hooks.DynamicLog
 import XMonad.Hooks.ManageDocks
 import XMonad.Hooks.UrgencyHook
 import XMonad.Util.Run
 import XMonad.Actions.SpawnOn
+
 -- The preferred terminal program, which is used in a binding below and by
 -- certain contrib modules.
 --
@@ -45,7 +55,7 @@ myFocusFollowsMouse = True
  
 -- Width of the window border in pixels.
 --
-myBorderWidth   = 1
+myBorderWidth   = 2
  
 -- modMask lets you specify which modkey you want to use. The default
 -- is mod1Mask ("left alt").  You may also consider using mod3Mask
@@ -90,9 +100,9 @@ myWorkspaces    = ["1","2","3","4","5","6","7","8","9","0"]
  
 -- Border colors for unfocused and focused windows, respectively.
 --
-myNormalBorderColor  = "#dddddd"
-myFocusedBorderColor = "#ff0000"
- 
+myNormalBorderColor  = "#777777"
+myFocusedBorderColor = "#416281"
+
 ------------------------------------------------------------------------
 -- Key bindings. Add, modify or remove key bindings here.
 --
@@ -105,6 +115,7 @@ myKeys conf@(XConfig {XMonad.modMask = modm}) = M.fromList $
     -- launch editor
     , ((modm,               xK_z     ), spawn "terminator -c 'Vim' -e vim")
     , ((modm .|. shiftMask, xK_z     ), spawn "gedit")
+    , ((modm .|. controlMask .|. shiftMask, xK_z     ), spawn "remarkable")
 
     -- launch browser
     , ((modm,               xK_e     ), spawn "google-chrome")
@@ -112,11 +123,12 @@ myKeys conf@(XConfig {XMonad.modMask = modm}) = M.fromList $
     , ((modm .|. controlMask .|. shiftMask, xK_e     ), spawn "chromium")
 
     -- launch applis launcher
-    , ((modm,               xK_p     ), spawn "exe=`dmenu_path | dmenu` && eval \"exec $exe\"")
+    , ((modm,               xK_p     ), spawn "exe=`dmenu_path | dmenu -fn 'Droid Sans Mono-16' -nb '#212741' -sb '#416281' -nf '#777777' -sf '#ffffff' ` && eval \"exec $exe\"")
     , ((modm .|. shiftMask, xK_p     ), spawn "gmrun")
  
     -- close focused window
     , ((modm,               xK_w     ), kill)
+    , ((modm .|. shiftMask, xK_w     ), spawn "xkill")
  
 
     -- Sounds
@@ -128,6 +140,10 @@ myKeys conf@(XConfig {XMonad.modMask = modm}) = M.fromList $
 
     -- volum--
     , ((modm,               0xffad), spawn "amixer set Master 5%- unmute")
+
+    -- help
+    -- xmonad
+    , ((modm,               xK_F1     ), spawn "remarkable ~/.xmonad/docs/index.md" )
 
 
     -- Layouts
@@ -167,7 +183,7 @@ myKeys conf@(XConfig {XMonad.modMask = modm}) = M.fromList $
  
     -- Expand the master area
     , ((modm,               xK_dollar     ), sendMessage Expand)
- 
+
 
     -- 
     -- Push window back into tiling
@@ -184,7 +200,7 @@ myKeys conf@(XConfig {XMonad.modMask = modm}) = M.fromList $
     -- See also the statusBar function from Hooks.DynamicLog.
     --
     -- , ((modm              , xK_b     ), sendMessage ToggleStruts)
- 
+
 
     -- Quit xmonad
     , ((modm .|. shiftMask, xK_Escape     ), io (exitWith ExitSuccess))
@@ -274,11 +290,29 @@ myMouseBindings (XConfig {XMonad.modMask = modm}) = M.fromList $
 -- The available layouts.  Note that each layout is separated by |||,
 -- which denotes layout choice.
 --
-myLayout = avoidStruts( tiled ||| Mirror tiled ||| simpleTabbed ||| Dishes 2 (1/6) ) ||| Full
+myLayout = avoidStruts( tiled ||| centerTop  ||| dragPaneH ||| dragPaneV ||| Circle ||| stack ||| mosaik |||OneBig (3/4) (3/4) |||  Roledex ||| Mirror tiled ||| simpleTabbed ||| dishes ) ||| Full
   where
     -- default tiling algorithm partitions the screen into two panes
     tiled   = Tall nmaster delta ratio
- 
+
+    --
+    dishes  = renamed [Replace "Dishes"] $ Dishes 2 (1/6) 
+
+    -- rename dragPane Horizontal 
+    dragPaneH = renamed [Replace "DragPaneH"] $ dragPane Horizontal 0.1 0.5
+
+    -- add 
+    dragPaneV = renamed [Replace "DragPaneV"] $ dragPane Vertical 0.1 0.5
+
+    --
+    centerTop = renamed [Replace "CenterTop"] $ centerMaster Grid
+
+    --
+    mosaik = renamed [Replace "Mosaik"] $ mosaic 2 [3,2]
+
+    --
+    stack = renamed [Replace "Stack"] $ StackTile 1 (3/100) (1/2)
+
     -- The default number of windows in the master pane
     nmaster = 1
  
@@ -306,10 +340,17 @@ myLayout = avoidStruts( tiled ||| Mirror tiled ||| simpleTabbed ||| Dishes 2 (1/
 --
 myManageHook = composeAll
     [ className =? "MPlayer"        --> doFloat
+    , className =? "VirtualBox"     --> doFloat
+    , className =? "Downloads"      --> doFloat
     , className =? "Gimp"           --> doFloat
+    -- ignore
     , resource  =? "desktop_window" --> doIgnore
     , resource  =? "kdesktop"       --> doIgnore
-    , resource  =? "panel"         --> doIgnore ]
+    , resource  =? "panel"          --> doIgnore 
+    -- workspace
+    , className =? "google-chrome"  --> doShift "1"
+    , className =? "firefox"        --> doShift "9"
+    ]
  
 ------------------------------------------------------------------------
 -- Event handling
@@ -341,7 +382,7 @@ myLogHook h = dynamicLogWithPP $ myDzenPP { ppOutput = hPutStrLn h }
  
 myDzenStatus = "dzen2 -w '1050' -ta 'l'" ++ myDzenStyle
 myDzenConky  = "conky -c ~/.xmonad/conkyrc | dzen2 -x '1050' -w '670' -ta 'r'" ++ myDzenStyle
-myDzenStyle  = " -h '30' -fg '#777777' -bg '#222222' -fn 'arial:bold:size=12'"
+myDzenStyle  = " -h '30' -fg '#777777' -bg '#212741' -fn 'arial:bold:size=12'"
  
 myDzenPP  = dzenPP
     { ppCurrent = dzenColor "#3399ff" "" . wrap " " " "
@@ -370,14 +411,15 @@ myDzenPP  = dzenPP
 -- hook by combining it with ewmhDesktopsStartup.
 --
 myStartupHook = do
-  spawn "killall trayer; trayer --edge top --align right --distancefrom right --distance 415 --SetDockType true --SetPartialStrut true --expand true --width 6 --height 28 --transparent true --alpha 0 --tint 0x222222"
+  spawn "killall trayer; trayer --edge top --align right --distancefrom right --distance 415 --SetDockType true --SetPartialStrut true --expand true --width 6 --height 27 --transparent true --alpha 0 --tint 0x212741"
   spawn "killall nm-applet; nm-applet"      
+  spawn "killall volumeicon; volumeicon"      
 
   spawn "xsetroot -cursor_name left_ptr"
   spawn "amixer set Master mute"
   spawn "set bell-style none"
   spawn "nitrogen --restore"
-  spawn "xrandr --output default --brightness 0.5"
+  spawn "xrandr --output default --brightness 0.9"
   spawn "numlockx on"
 
  
