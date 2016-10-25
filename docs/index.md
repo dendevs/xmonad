@@ -1,8 +1,10 @@
 # Xmonad 
 
-*version: 0.1*
+*version: 1.0.0*
+
 *deps: [xmonad 0.12]*
-*github: *
+
+*github: [config](https://github.com/dendevs/xmonad) *
 
 ## Lexique
 
@@ -31,6 +33,7 @@ Rester le layout: mod + shift + ²
 ### Applications
 
 Afficher les applis en cours : mod + shift + tab
+
 Terminal : mod + a
 
 Editeur 1 ( vim ) : mod + z
@@ -110,7 +113,7 @@ Quitter : mod + shift + escape
 
 ### Docs 
 
-*  Xmonad : mod + F1
+Xmonad : mod + F1
 
 ## Barre de status
 
