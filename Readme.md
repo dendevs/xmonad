@@ -3,6 +3,8 @@
 *config pour xmonad*
 *version: 1.0.0*
 
+![xmonad screenshot](/home/dendev/.xmonad/docs/img/xmonad.png  "Xmonad")
+
 ## Fcts
 
 * Theme et coherence avec dzen2 et dmenu

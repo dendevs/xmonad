@@ -4,7 +4,9 @@
 
 *deps: [xmonad 0.12]*
 
-*github: [config](https://github.com/dendevs/xmonad) *
+*github: [config](https://github.com/dendevs/xmonad)*
+
+![xmonad screenshot](/home/dendev/.xmonad/docs/img/xmonad.png  "Xmonad")
 
 ## Lexique
 
